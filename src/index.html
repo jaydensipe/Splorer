@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+	<title>Rocket Game</title>
+	<script src="main.js" defer></script>
+	<script src="../node_modules/twgl.js/dist/4.x/twgl.js"></script>
+
+</head>
+
+<body>
+	<canvas id="glCanvas" width="640" height="480"></canvas>
+</body>
+
+<script id="vs" type="notjs">
+		attribute vec4 position;
+
+		void main() {
+			gl_Position = position;
+		}
+	</script>
+
+<script id="fs" type="notjs">
+		precision mediump float;
+
+		void main() {
+
+			gl_FragColor = vec4(1, 0, 0, 1);
+		}
+	</script>
+
+</html>

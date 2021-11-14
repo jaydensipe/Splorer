@@ -1,0 +1,14 @@
+{
+  "name": "finalproject",
+  "version": "1.0.0",
+  "description": "Final Project for CAP 4720 at UCF.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "twgl.js": "^4.21.2"
+  }
+}
