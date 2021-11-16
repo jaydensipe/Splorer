@@ -2,20 +2,26 @@
 <html>
 
 <head>
-	<meta charset="utf8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-	<title>Rocket Game</title>
-	<script src="main.js" defer></script>
-	<script src="../node_modules/twgl.js/dist/4.x/twgl.js"></script>
+  <meta charset="utf8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Rocket Game</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
+  <link rel="manifest" href="images/site.webmanifest">
+
+
+  <script type="module" src="main.js" defer></script>
+  <script src="../node_modules/twgl.js/dist/4.x/twgl-full.js"></script>
 
 </head>
 
 <body>
-	<canvas id="glCanvas" width="640" height="480"></canvas>
+  <canvas style="display: block; margin: auto;" id="glCanvas" width="640" height="480"></canvas>
 </body>
 
 <script id="vs" type="notjs">
-		attribute vec4 position;
+	attribute vec4 position;
 
 		void main() {
 			gl_Position = position;
@@ -23,7 +29,7 @@
 	</script>
 
 <script id="fs" type="notjs">
-		precision mediump float;
+	precision mediump float;
 
 		void main() {
 

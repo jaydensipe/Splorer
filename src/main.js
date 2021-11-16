@@ -27,3 +27,36 @@ function main() {
     }
     requestAnimationFrame(render);
 }
+
+function loadModel(url) {
+    const loader = new OBJLoader();
+    return loader.loadAsync(url);
+}
+
+async function processModel(url) {
+    const modelInfo = await loadModel(url);
+
+    const vertexAttributes = modelInfo.children.map((d) => ({
+        position: { numComponents: 3, data: d.geometry.attributes.position.array },
+        normal: { numComponents: 3, data: d.geometry.attributes.normal.array },
+        uv: { numComponents: 2, data: d.geometry.attributes.uv.array }
+    }));
+
+    return vertexAttributes;
+}
+
+// Handles player input
+function playerInput() {
+    document.addEventListener('keydown', function (e) {
+
+        // Handles moving UP!
+        if (e.key === 'w') {
+            console.log('Moving up!')
+        }
+
+        // Handles moving DOWN!
+        if (e.key === 's') {
+            console.log('Moving down!')
+        }
+    })
+}

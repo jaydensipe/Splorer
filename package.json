@@ -2,7 +2,7 @@
   "name": "finalproject",
   "version": "1.0.0",
   "description": "Final Project for CAP 4720 at UCF.",
-  "main": "index.js",
+  "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,5 +10,14 @@
   "license": "ISC",
   "dependencies": {
     "twgl.js": "^4.21.2"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://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@github.com/jaydensipe/FinalProject.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jaydensipe/FinalProject/issues"
+  },
+  "homepage": "https://github.com/jaydensipe/FinalProject#readme"
 }
