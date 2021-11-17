@@ -1,0 +1,35 @@
+/* CSS FILE */
+
+/* FONT */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron&display=swap');
+
+body {
+    background-color: rgb(15, 12, 12);
+}
+
+canvas {
+    border-radius: 10px;
+    border-style: inset;
+    background-color: rgb(37, 21, 21);
+}
+
+.container {
+    position: relative;
+    text-align: center;
+}
+
+#centered {
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Orbitron', sans-serif;
+    color: white;
+}
+
+#title {
+    color: rgb(255, 17, 0);
+    font-size: 17vh;
+    text-shadow: 10px 10px rgb(0, 0, 0);
+    margin-bottom: 0px;
+}

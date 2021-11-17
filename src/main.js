@@ -1,24 +1,21 @@
-main();
-
 // Imports
 import { OBJLoader } from "https://cdn.skypack.dev/three@/examples/jsm/loaders/OBJLoader.js";
 import { m4, v3 } from "../node_modules/twgl.js/dist/4.x/twgl-full.module.js";
 import TWEEN from "../node_modules/@tweenjs/tween.js/dist/tween.esm.js";
 
 async function main() {
-    var gl = twgl.getWebGLContext(document.getElementById("glCanvas"));
-    var programInfo = twgl.createProgramInfo(gl, ["vs", "fs"]);
 
-    // cube
-    // const arrays = [{
-    //     position: [1, 1, -1, 1, 1, 1, 1, -1, 1, 1, -1, -1, -1, 1, 1, -1, 1, -1, -1, -1, -1, -1, -1, 1, -1, 1, 1, 1, 1, 1, 1, 1, -1, -1, 1, -1, -1, -1, -1, 1, -1, -1, 1, -1, 1, -1, -1, 1, 1, 1, 1, -1, 1, 1, -1, -1, 1, 1, -1, 1, -1, 1, -1, 1, 1, -1, 1, -1, -1, -1, -1, -1],
-    //     normal: [1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1],
-    //     texcoord: [1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1],
-    //     indices: [0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7, 8, 9, 10, 8, 10, 11, 12, 13, 14, 12, 14, 15, 16, 17, 18, 16, 18, 19, 20, 21, 22, 20, 22, 23],
-    // }];
+    // Removes main menu elements
+    var elements = document.getElementById("centered");
+    elements.style.display = "none";
+
+    var gl = twgl.getWebGLContext(document.getElementById("glCanvas"));
+    var rocketProgramInfo = twgl.createProgramInfo(gl, ["rocket_vs", "rocket_fs"]);
+    var asteroidProgramInfo = twgl.createProgramInfo(gl, ["asteroid_vs", "asteroid_fs"]);
 
     // Model Imports
     const rocket = await processModel('./assets/rocket/10475_Rocket_Ship_v1_L3.obj');
+    const asteroid = await processModel('./assets/asteroid/10464_Asteroid_v1_Iterations-2.obj');
 
     // Player Variables
     var canMove = true;
@@ -27,6 +24,8 @@ async function main() {
 
     // Handles player input
     function playerInput() {
+
+        // Bobs player ship for dramatic effect :]
         const t = new TWEEN.Tween(playerWiggle)
             .to([0.0, 5.0, 0.0, 1], 750)
             .easing(TWEEN.Easing.Sinusoidal.In)
@@ -40,13 +39,13 @@ async function main() {
         t.start();
         t.repeat(Infinity);
         t.yoyo(true);
-        
+
+        // Handles different key presses for player movement
         document.addEventListener('keydown', function (e) {
 
             if (!canMove) {
                 return;
             }
-
             canMove = false;
 
             // Handles moving UP!
@@ -58,7 +57,6 @@ async function main() {
                     .easing(TWEEN.Easing.Back.Out)
                     .onUpdate(() => {
                         playerPos = startPos;
-                        console.log(playerPos)
                     })
                     .onComplete(() => {
                         canMove = true;
@@ -89,7 +87,12 @@ async function main() {
 
     playerInput();
 
-    const bufferInfoArray = rocket.map((d) =>
+
+    const bufferRocket = rocket.map((d) =>
+        twgl.createBufferInfoFromArrays(gl, d)
+    )
+
+    const bufferAsteroid = asteroid.map((d) =>
         twgl.createBufferInfoFromArrays(gl, d)
     )
 
@@ -104,18 +107,29 @@ async function main() {
         ],
     });
 
+    // Zooms out camera for dramatic effect
+    var fov = deg2rad(10);
+    const t = new TWEEN.Tween([fov])
+        .to([deg2rad(90)], 1000)
+        .easing(TWEEN.Easing.Quadratic.Out)
+        .onUpdate((value) => {
+            fov = value;
+        })
+
+    t.start();
+
+    // Main game loop
     function render(time) {
         time *= 0.001;
         twgl.resizeCanvasToDisplaySize(gl.canvas);
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-        gl.clearColor(0.3, 0.3, 0.3, 1.0)
+        gl.clearColor(0.2, 0.2, 0.2, 1.0)
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         // Camera Variables
-        const fov = deg2rad(90);
         const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
         const zNear = 0.5;
         const zFar = 1000;
@@ -131,7 +145,7 @@ async function main() {
 
         // Shader Uniforms
         const uniforms = {
-            u_lightWorldPos: [1, 8, -150],
+            u_lightWorldPos: [10, 80, -1500],
             u_lightColor: [1, 0.8, 0.8, 1],
             u_ambient: [0.1, 0, 0, 1],
             u_specular: [1, 1, 1, 1],
@@ -146,10 +160,17 @@ async function main() {
         uniforms.u_worldInverseTranspose = m4.transpose(m4.inverse(world));
         uniforms.u_worldViewProjection = m4.multiply(viewProjection, world);
 
-        gl.useProgram(programInfo.program);
-        bufferInfoArray.forEach((bufferInfo) => {
-            twgl.setUniforms(programInfo, uniforms);
-            twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
+        gl.useProgram(rocketProgramInfo.program);
+        bufferRocket.forEach((bufferInfo) => {
+            twgl.setUniforms(rocketProgramInfo, uniforms);
+            twgl.setBuffersAndAttributes(gl, rocketProgramInfo, bufferInfo);
+            twgl.drawBufferInfo(gl, bufferInfo);
+        });
+
+        gl.useProgram(asteroidProgramInfo.program);
+        bufferAsteroid.forEach((bufferInfo) => {
+            twgl.setUniforms(asteroidProgramInfo, uniforms);
+            twgl.setBuffersAndAttributes(gl, asteroidProgramInfo, bufferInfo);
             twgl.drawBufferInfo(gl, bufferInfo);
         });
 
@@ -160,6 +181,7 @@ async function main() {
 
 
 }
+document.querySelector('button').addEventListener('click', main);
 
 function deg2rad(deg) {
     return deg * Math.PI / 180;

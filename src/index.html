@@ -4,23 +4,34 @@
 <head>
   <meta charset="utf8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>Rocket Game</title>
+  <title>SPLORER!</title>
+  <link rel="stylesheet" href="main.css">
   <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
   <link rel="manifest" href="images/site.webmanifest">
   <script src="../node_modules/twgl.js/dist/4.x/twgl-full.js"></script>
-  <script type="module" src="main.js" defer></script>
-
-
 </head>
 
 <body>
-  <canvas style="display: block; margin: auto;" id="glCanvas" width="640" height="480"></canvas>
+  <div class="container">
+    <canvas style="display: block; margin: auto;" id="glCanvas" width="768" height="576"></canvas>
+    <div id="centered">
+      <div>
+        <h1 id="title">SPLORER</h1>
+      </div>
+      <div>
+        <h1>Made by Jayden Sipe</h1>
+      </div>
+      <div><button type="button" onclick="window.main">Click Me!</button></div>
+    </div>
+  </div>
 
+  <script type="module" src="main.js" defer></script>
 </body>
 
-<script id="vs" type="notjs">
+<!-- Rocket VERTEX SHADER -->
+<script id="rocket_vs" type="notjs">
 
     uniform mat4 u_worldViewProjection;
     uniform vec3 u_lightWorldPos;
@@ -51,7 +62,8 @@
   
 	</script>
 
-<script id="fs" type="notjs">
+<!-- Rocket FRAGMENT SHADER -->
+<script id="rocket_fs" type="notjs">
 
     precision mediump float;
 
@@ -88,6 +100,85 @@
                     u_specular * litR.z * u_specularFactor)).rgb,
           diffuseColor.a);
       gl_FragColor = outColor;
+    }
+  
+	</script>
+
+<!-- Asteroid VERTEX SHADER -->
+<script id="asteroid_vs" type="notjs">
+
+    uniform mat4 u_worldViewProjection;
+    uniform vec3 u_lightWorldPos;
+    uniform mat4 u_world;
+    uniform mat4 u_viewInverse;
+    uniform mat4 u_worldInverseTranspose;
+    uniform vec4 u_playerPos;
+    uniform vec4 u_playerWiggle;
+
+    attribute vec4 position;
+    attribute vec3 normal;
+    attribute vec2 texcoord;
+
+    varying vec4 v_position;
+    varying vec2 v_texCoord;
+    varying vec3 v_normal;
+    varying vec3 v_surfaceToLight;
+    varying vec3 v_surfaceToView;
+    
+    mat4 scale = mat4(0.1, 0.0, 0.0, 0.0,
+                  0.0, 0.1, 0.0, 0.0,
+                  0.0, 0.0, 0.1, 0.0, 
+                  0.0, 0.0, 0.0, 1.0);
+
+    void main() {
+      v_texCoord = texcoord;
+      v_position = u_worldViewProjection * position * scale;
+      v_normal = (u_worldInverseTranspose * vec4(normal, 0)).xyz;
+      v_surfaceToLight = u_lightWorldPos - (u_world * position).xyz;
+      v_surfaceToView = (u_viewInverse[3] - (u_world * position)).xyz;
+      gl_Position = v_position;
+    }
+  
+	</script>
+
+<!-- Asteroid FRAGMENT SHADER -->
+<script id="asteroid_fs" type="notjs">
+
+    precision mediump float;
+
+    varying vec4 v_position;
+    varying vec2 v_texCoord;
+    varying vec3 v_normal;
+    varying vec3 v_surfaceToLight;
+    varying vec3 v_surfaceToView;
+
+    uniform vec4 u_lightColor;
+    uniform vec4 u_ambient;
+    uniform sampler2D u_diffuse;
+    uniform vec4 u_specular;
+    uniform float u_shininess;
+    uniform float u_specularFactor;
+
+    vec4 lit(float l ,float h, float m) {
+      return vec4(1.0,
+                  max(l, 0.0),
+                  (l > 0.0) ? pow(max(0.0, h), m) : 0.0,
+                  1.0);
+    }
+
+    void main() {
+      vec4 diffuseColor = texture2D(u_diffuse, v_texCoord);
+      vec3 a_normal = normalize(v_normal);
+      vec3 surfaceToLight = normalize(v_surfaceToLight);
+      vec3 surfaceToView = normalize(v_surfaceToView);
+      vec3 halfVector = normalize(surfaceToLight + surfaceToView);
+      vec4 litR = lit(dot(a_normal, surfaceToLight),
+                        dot(a_normal, halfVector), u_shininess);
+      vec4 outColor = vec4((
+      u_lightColor * (diffuseColor * litR.y + diffuseColor * u_ambient +
+                    u_specular * litR.z * u_specularFactor)).rgb,
+          diffuseColor.a);
+      gl_FragColor = mix(outColor, vec4(0.8, 0.9, 1, 1), 0.1);
     }
   
 	</script>
