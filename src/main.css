@@ -4,13 +4,29 @@
 @import url('https://fonts.googleapis.com/css2?family=Orbitron&display=swap');
 
 body {
-    background-color: rgb(15, 12, 12);
+    background-color: rgb(0, 0, 0);
+    background-image: url('assets/bg.png');
+    background-size: cover;
 }
 
 canvas {
-    border-radius: 10px;
-    border-style: inset;
-    background-color: rgb(37, 21, 21);
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.button {
+    font-size: 30px;
+    border-radius: 20px;
+    border-width: 3px;
+    width: 60%;
+    padding: 20px;
+    color: white;
+    background-color: black;
+    cursor: pointer;
+    font-family: 'Orbitron', sans-serif;
+}
+
+.button:hover {
+    background-color: rgb(10, 10, 10);
 }
 
 .container {
@@ -20,7 +36,7 @@ canvas {
 
 #centered {
     position: absolute;
-    top: 20%;
+    top: 40%;
     left: 50%;
     transform: translate(-50%, -50%);
     font-family: 'Orbitron', sans-serif;
@@ -30,6 +46,29 @@ canvas {
 #title {
     color: rgb(255, 17, 0);
     font-size: 17vh;
-    text-shadow: 10px 10px rgb(0, 0, 0);
+    text-shadow: 10px 10px rgb(102, 0, 14);
     margin-bottom: 0px;
+    transition: all 2s;
+}
+
+#score {
+    position: absolute;
+    top: 10%;
+    left: 32%;
+    transform: translate(-50%, -50%);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 40px;
+    color: white;
+    display: none;
+}
+
+#death {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 40px;
+    color: white;
+    display: none;
 }
