@@ -86,9 +86,10 @@ async function main() {
 
     // Player Variables
     var canMove = true;
+    var isDead = false;
+
     var playerPos = [0.0, 0.0, 0.0, 1]
     var playerWiggle = [0.0, 0.0, 0.0, 1]
-    var isDead = false;
     const playerMoveSpeed = 400;
     var score = 0;
 
@@ -108,7 +109,7 @@ async function main() {
         var deathelement = document.getElementById("death");
         deathelement.style.display = "block";
 
-        var counter = 5;
+        var counter = 3;
         deathelement.innerHTML = "Oh no! You've died.<br>Redeploying in: " + counter;
         setInterval(() => {
             counter--;
@@ -156,7 +157,6 @@ async function main() {
                         playerPos = startPos;
                     })
                     .onComplete(() => {
-                        death();
                         canMove = true;
                     })
 
@@ -199,10 +199,6 @@ async function main() {
         twgl.createBufferInfoFromArrays(gl, d)
     )
 
-    const bufferAsteroid = asteroid.map((d) =>
-        twgl.createBufferInfoFromArrays(gl, d)
-    )
-
     const bufferplanet = planet.map((d) =>
         twgl.createBufferInfoFromArrays(gl, d)
     )
@@ -239,19 +235,62 @@ async function main() {
 
     t.start();
 
-    var asteroidPos = [0, 0, 2000];
-    const j = new TWEEN.Tween(asteroidPos)
-        .to([0, 0, -400], 5000)
-        .easing(TWEEN.Easing.Linear.None)
-        .onUpdate((value) => {
-            if (value[2] < 325 && value[2] > 0 && playerPos[1] === PLAYERDOWN[1]) {
-            }
-        })
+    var asteroidsToDraw = []
+    setInterval(() => {
 
-    j.start();
+        if (Math.random() >= 0.5) {
+            console.log('true')
+            var asteroidBottom = [0, 0, 2000];
+            const j = new TWEEN.Tween(asteroidBottom)
+                .to([0, 0, -1000], 1500)
+                .easing(TWEEN.Easing.Linear.None)
+                .onUpdate((value) => {
+                    if (value[2] < 325 && value[2] > 0 && playerPos[1] === PLAYERDOWN[1]) {
+                        death();
+                    }
+
+                }).onComplete(() => {
+                    asteroidsToDraw.shift()
+
+                })
+            j.start()
+
+            var obj = {
+                bufferInfo: asteroid.map((d) =>
+                    twgl.createBufferInfoFromArrays(gl, d)),
+                position: asteroidBottom
+            }
+        }
+        else {
+            console.log('false')
+
+            var asteroidTop = [0, 400, 2000];
+            const v = new TWEEN.Tween(asteroidTop)
+                .to([0, 400, -1000], 1500)
+                .easing(TWEEN.Easing.Linear.None)
+                .onUpdate((value) => {
+                    if (value[2] < 325 && value[2] > 0 && playerPos[1] === PLAYERUP[1]) {
+                        death();
+
+                    }
+
+                }).onComplete(() => {
+                    asteroidsToDraw.shift();
+                })
+
+            v.start()
+
+            var obj = {
+                bufferInfo: asteroid.map((d) =>
+                    twgl.createBufferInfoFromArrays(gl, d)),
+                position: asteroidTop
+            }
+        }
+
+        asteroidsToDraw.push(obj);
+    }, 500);
 
     // Main game loop
-    var lastTime = 0;
     function render(time) {
         if (isDead) {
             return;
@@ -283,7 +322,7 @@ async function main() {
 
         // ROCKET
         var uniforms = {
-            u_lightWorldPos: [1000, 80, 3000],
+            u_lightWorldPos: [1000, 80, 1000],
             u_lightColor: [1, 1, 0.5, 1],
             u_ambient: [0.1, 0.2, 0.2, 1],
             u_specular: [1, 1, 1, 1],
@@ -304,11 +343,27 @@ async function main() {
             twgl.drawBufferInfo(gl, bufferInfo);
         });
 
+        // ASTEROID
+        console.log(asteroidsToDraw)
+        asteroidsToDraw.forEach((asteroid) => {
+            uniforms.u_diffuse = asteroidTex;
+            uniforms.u_world = world;
+            uniforms.u_worldInverseTranspose = m4.transpose(m4.inverse(world));
+            uniforms.u_worldViewProjection = m4.scale(m4.rotateZ(m4.translate(m4.multiply(viewProjection, world), asteroid.position), deg2rad(time * 50)), [0.1, 0.1, 0.1]);
+
+            gl.useProgram(asteroidProgramInfo.program);
+            twgl.setUniforms(asteroidProgramInfo, uniforms);
+            twgl.setBuffersAndAttributes(gl, asteroidProgramInfo, asteroid.bufferInfo[0]);
+            twgl.drawBufferInfo(gl, asteroid.bufferInfo[0]);
+        })
+
         // PLANET
+        uniforms.u_ambient = [0.9, 0.9, 0.9, 1]
+        uniforms.u_lightWorldPos = [0.0, 0.0, 0.0]
         uniforms.u_diffuse = planetTex;
         uniforms.u_world = world;
         uniforms.u_worldInverseTranspose = m4.transpose(m4.inverse(world));
-        uniforms.u_worldViewProjection = m4.scale(m4.translate(m4.multiply(viewProjection, world), [-1000, 200, 3500]), [3, 3, 3]);
+        uniforms.u_worldViewProjection = m4.scale(m4.rotateY(m4.translate(m4.multiply(viewProjection, world), [-1000, 200, 3500]), deg2rad(time * 10)), [3, 3, 3]);
 
         gl.useProgram(planetProgramInfo.program);
         bufferplanet.forEach((bufferInfo) => {
@@ -316,27 +371,6 @@ async function main() {
             twgl.setBuffersAndAttributes(gl, planetProgramInfo, bufferInfo);
             twgl.drawBufferInfo(gl, bufferInfo);
         });
-
-        // ASTEROID
-        uniforms.u_diffuse = asteroidTex;
-        uniforms.u_world = world;
-        uniforms.u_worldInverseTranspose = m4.transpose(m4.inverse(world));
-        uniforms.u_worldViewProjection = m4.scale(m4.translate(m4.multiply(viewProjection, world), asteroidPos), [0.1, 0.1, 0.1]);
-
-        gl.useProgram(asteroidProgramInfo.program);
-        bufferAsteroid.forEach((bufferInfo) => {
-            twgl.setUniforms(asteroidProgramInfo, uniforms);
-            twgl.setBuffersAndAttributes(gl, asteroidProgramInfo, bufferInfo);
-            twgl.drawBufferInfo(gl, bufferInfo);
-        });
-
-
-        if (time >= lastTime + 1) {
-            // one second has passed, run some code here
-            lastTime = time;
-            console.log('ds')
-
-        }
 
         requestAnimationFrame(render);
         TWEEN.update();
