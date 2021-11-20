@@ -14,19 +14,21 @@ canvas {
 }
 
 .button {
+    display:inline-block;
     font-size: 30px;
     border-radius: 20px;
     border-width: 3px;
-    width: 60%;
+    width: 35%;
+    margin: 10px;
     padding: 20px;
     color: white;
-    background-color: black;
+    background-color: rgb(0, 0, 0);
     cursor: pointer;
     font-family: 'Orbitron', sans-serif;
 }
 
 .button:hover {
-    background-color: rgb(10, 10, 10);
+    background-color: rgb(20, 0, 0);
 }
 
 .container {
@@ -36,7 +38,7 @@ canvas {
 
 #centered {
     position: absolute;
-    top: 40%;
+    top: 45%;
     left: 50%;
     transform: translate(-50%, -50%);
     font-family: 'Orbitron', sans-serif;
@@ -60,6 +62,7 @@ canvas {
     font-size: 40px;
     color: white;
     display: none;
+    user-select: none;
 }
 
 #death {

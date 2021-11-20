@@ -9,7 +9,7 @@ const vs = `
     uniform vec3 u_lightWorldPos;
     uniform mat4 u_world;
     uniform mat4 u_viewInverse;
-    uniform mat4 u_worldInverseTranspose;
+    uniform mat4 u_worldInverse;
 
     attribute vec4 position;
     attribute vec3 normal;
@@ -18,49 +18,49 @@ const vs = `
     varying vec4 v_position;
     varying vec2 v_texCoord;
     varying vec3 v_normal;
-    varying vec3 v_surfaceToLight;
-    varying vec3 v_surfaceToView;
+    varying vec3 v_surface;
+    varying vec3 v_viewSurface;
 
     void main() {
     v_texCoord = texcoord;
     v_position = u_worldViewProjection * position;
-    v_normal = (u_worldInverseTranspose * vec4(normal, 0)).xyz;
-    v_surfaceToLight = u_lightWorldPos - (u_world * position).xyz;
-    v_surfaceToView = (u_viewInverse[3] - (u_world * position)).xyz;
+    v_normal = (u_worldInverse * vec4(normal, 0)).xyz;
+    v_surface = u_lightWorldPos - (u_world * position).xyz;
+    v_viewSurface = (u_viewInverse[3] - (u_world * position)).xyz;
     gl_Position = v_position;
     }`;
 
 const fs = `
     precision mediump float;
 
+    vec4 light(float l ,float h, float m) {
+        return vec4(1.0,
+                    max(l, 0.0),
+                    (l > 0.0) ? pow(max(0.0, h), m) : 0.0,
+                    1.0);
+      }
+
     varying vec4 v_position;
     varying vec2 v_texCoord;
     varying vec3 v_normal;
-    varying vec3 v_surfaceToLight;
-    varying vec3 v_surfaceToView;
+    varying vec3 v_surface;
+    varying vec3 v_viewSurface;
 
     uniform vec4 u_lightColor;
     uniform vec4 u_ambient;
-    uniform sampler2D u_diffuse;
     uniform vec4 u_specular;
     uniform float u_shininess;
     uniform float u_specularFactor;
-
-    vec4 lit(float l ,float h, float m) {
-      return vec4(1.0,
-                  max(l, 0.0),
-                  (l > 0.0) ? pow(max(0.0, h), m) : 0.0,
-                  1.0);
-    }
+    uniform sampler2D u_diffuse;
 
     void main() {
       vec4 diffuseColor = texture2D(u_diffuse, v_texCoord);
       vec3 a_normal = normalize(v_normal);
-      vec3 surfaceToLight = normalize(v_surfaceToLight);
-      vec3 surfaceToView = normalize(v_surfaceToView);
-      vec3 halfVector = normalize(surfaceToLight + surfaceToView);
-      vec4 litR = lit(dot(a_normal, surfaceToLight),
-                        dot(a_normal, halfVector), u_shininess);
+      vec3 surface = normalize(v_surface);
+      vec3 viewSurface = normalize(v_viewSurface);
+      vec3 hV = normalize(surface + viewSurface);
+      vec4 litR = light(dot(a_normal, surface),
+                        dot(a_normal, hV), u_shininess);
       vec4 outColor = vec4((
       u_lightColor * (diffuseColor * litR.y + diffuseColor * u_ambient +
                     u_specular * litR.z * u_specularFactor)).rgb,
@@ -68,16 +68,10 @@ const fs = `
       gl_FragColor = outColor;
     }`;
 
-async function main() {
+async function main(difficulty) {
 
-    // Removes main menu elements
-    var elements = document.getElementById("centered");
-    elements.style.display = "none";
-
-    // Adds score element
-    var scoreelement = document.getElementById("score");
-    scoreelement.innerHTML = 'Score: ' + 0;
-    scoreelement.style.display = "block";
+    initializeUI();
+    playMusic();
 
     var gl = twgl.getWebGLContext(document.getElementById("glCanvas"));
     if (!gl) {
@@ -88,9 +82,9 @@ async function main() {
     var canMove = true;
     var isDead = false;
 
-    var playerPos = [0.0, 0.0, 0.0, 1]
+    var playerPos = [0.0, 400.0, 0.0, 1]
     var playerWiggle = [0.0, 0.0, 0.0, 1]
-    const playerMoveSpeed = 400;
+    const playerMoveSpeed = 350;
     var score = 0;
 
     const PLAYERDOWN = [0.0, 0.0, 0.0, 1]
@@ -138,11 +132,41 @@ async function main() {
         t.repeat(Infinity);
         t.yoyo(true);
 
-        // Handles different key presses for player movement
-        document.addEventListener('keydown', function (e) {
+        // Handles mobile press for player movement
+        document.addEventListener('click', movePlayer)
 
+        // Handles different key presses for player movement
+        document.addEventListener('keydown', movePlayer)
+
+        function movePlayer(e) {
             if (!canMove) {
                 return;
+            }
+
+            // Handles mouse click! (and mobile)
+            if (e.screenX !== undefined) {
+                const startPos = playerPos;
+                canMove = false;
+
+                var movePos = [];
+                if (playerPos[1] == PLAYERUP[1]) {
+                    movePos = PLAYERDOWN;
+                }
+                else {
+                    movePos = PLAYERUP;
+                }
+
+                const t = new TWEEN.Tween(startPos)
+                    .to(movePos, playerMoveSpeed)
+                    .easing(TWEEN.Easing.Back.Out)
+                    .onUpdate(() => {
+                        playerPos = startPos;
+                    })
+                    .onComplete(() => {
+                        canMove = true;
+                    })
+
+                t.start();
             }
 
             // Handles moving UP!
@@ -180,7 +204,7 @@ async function main() {
 
                 t.start();
             }
-        })
+        }
     }
     playerInput();
 
@@ -236,61 +260,64 @@ async function main() {
     t.start();
 
     var asteroidsToDraw = []
+    const asteroidMoveSpeed = difficulty === 'easy' ? 500 : 350;
     setInterval(() => {
-
         if (Math.random() >= 0.5) {
-            console.log('true')
             var asteroidBottom = [0, 0, 2000];
             const j = new TWEEN.Tween(asteroidBottom)
                 .to([0, 0, -1000], 1500)
                 .easing(TWEEN.Easing.Linear.None)
                 .onUpdate((value) => {
-                    if (value[2] < 325 && value[2] > 0 && playerPos[1] === PLAYERDOWN[1]) {
+                    // Collision Detection
+                    if (value[2] < 325 && value[2] > 0 && playerPos[1] <= 75) {
                         death();
                     }
 
                 }).onComplete(() => {
+                    // Cleans up asteroid
                     asteroidsToDraw.shift()
-
                 })
             j.start()
 
+            // Instances a BOTTOM asteroid
             var obj = {
                 bufferInfo: asteroid.map((d) =>
                     twgl.createBufferInfoFromArrays(gl, d)),
-                position: asteroidBottom
+                position: asteroidBottom,
+                rotationSpeed: Math.floor(Math.random() * (70 - 30 + 1) + 30)
             }
         }
         else {
-            console.log('false')
-
             var asteroidTop = [0, 400, 2000];
             const v = new TWEEN.Tween(asteroidTop)
                 .to([0, 400, -1000], 1500)
                 .easing(TWEEN.Easing.Linear.None)
                 .onUpdate((value) => {
-                    if (value[2] < 325 && value[2] > 0 && playerPos[1] === PLAYERUP[1]) {
+                    // Collision Detection
+                    if (value[2] < 325 && value[2] > 0 && playerPos[1] >= 325) {
                         death();
-
                     }
 
                 }).onComplete(() => {
+                    // Cleans up asteroid
                     asteroidsToDraw.shift();
                 })
-
             v.start()
 
+            // Instances a TOP asteroid
             var obj = {
                 bufferInfo: asteroid.map((d) =>
                     twgl.createBufferInfoFromArrays(gl, d)),
-                position: asteroidTop
+                position: asteroidTop,
+                rotationSpeed: Math.floor(Math.random() * (70 - 30 + 1) + 30)
             }
         }
 
         asteroidsToDraw.push(obj);
-    }, 500);
+    }, asteroidMoveSpeed);
 
     // Main game loop
+    var lastTime = 0;
     function render(time) {
         if (isDead) {
             return;
@@ -324,16 +351,16 @@ async function main() {
         var uniforms = {
             u_lightWorldPos: [1000, 80, 1000],
             u_lightColor: [1, 1, 0.5, 1],
-            u_ambient: [0.1, 0.2, 0.2, 1],
+            u_ambient: [0.4, 0.4, 0.4, 1],
             u_specular: [1, 1, 1, 1],
-            u_shininess: 75,
-            u_specularFactor: 0.8,
+            u_shininess: 15,
+            u_specularFactor: 1.0,
             u_diffuse: rocketTex,
         };
 
         uniforms.u_viewInverse = camera;
         uniforms.u_world = world;
-        uniforms.u_worldInverseTranspose = m4.transpose(m4.inverse(world));
+        uniforms.u_worldInverse = m4.transpose(m4.inverse(world));
         uniforms.u_worldViewProjection = m4.rotateZ(m4.translate(m4.translate(m4.multiply(viewProjection, world), playerPos), playerWiggle), deg2rad(180));
 
         gl.useProgram(rocketProgramInfo.program);
@@ -343,13 +370,22 @@ async function main() {
             twgl.drawBufferInfo(gl, bufferInfo);
         });
 
-        // ASTEROID
-        console.log(asteroidsToDraw)
+        // ASTEROIDS
+        var uniforms = {
+            u_lightWorldPos: [1000, 80, 1000],
+            u_lightColor: [1, 1, 0.5, 1],
+            u_ambient: [0.4, 0.4, 0.4, 1],
+            u_specular: [0, 0, 0, 1],
+            u_shininess: 5,
+            u_specularFactor: 0.8,
+            u_diffuse: rocketTex,
+        };
+
         asteroidsToDraw.forEach((asteroid) => {
             uniforms.u_diffuse = asteroidTex;
             uniforms.u_world = world;
-            uniforms.u_worldInverseTranspose = m4.transpose(m4.inverse(world));
-            uniforms.u_worldViewProjection = m4.scale(m4.rotateZ(m4.translate(m4.multiply(viewProjection, world), asteroid.position), deg2rad(time * 50)), [0.1, 0.1, 0.1]);
+            uniforms.u_worldInverse = m4.transpose(m4.inverse(world));
+            uniforms.u_worldViewProjection = m4.scale(m4.rotateZ(m4.translate(m4.multiply(viewProjection, world), asteroid.position), deg2rad(time * asteroid.rotationSpeed)), [0.1, 0.1, 0.1]);
 
             gl.useProgram(asteroidProgramInfo.program);
             twgl.setUniforms(asteroidProgramInfo, uniforms);
@@ -358,11 +394,19 @@ async function main() {
         })
 
         // PLANET
-        uniforms.u_ambient = [0.9, 0.9, 0.9, 1]
-        uniforms.u_lightWorldPos = [0.0, 0.0, 0.0]
+        var uniforms = {
+            u_lightWorldPos: [0.0, 0.0, 0.0],
+            u_lightColor: [1, 1, 0.5, 1],
+            u_ambient: [0.9, 0.9, 0.9, 1],
+            u_specular: [1, 1, 1, 1],
+            u_shininess: 75,
+            u_specularFactor: 0.8,
+            u_diffuse: rocketTex,
+        };
+
         uniforms.u_diffuse = planetTex;
         uniforms.u_world = world;
-        uniforms.u_worldInverseTranspose = m4.transpose(m4.inverse(world));
+        uniforms.u_worldInverse = m4.transpose(m4.inverse(world));
         uniforms.u_worldViewProjection = m4.scale(m4.rotateY(m4.translate(m4.multiply(viewProjection, world), [-1000, 200, 3500]), deg2rad(time * 10)), [3, 3, 3]);
 
         gl.useProgram(planetProgramInfo.program);
@@ -372,14 +416,44 @@ async function main() {
             twgl.drawBufferInfo(gl, bufferInfo);
         });
 
+        // Increases score every second
+        if (time >= lastTime + 1) {
+            increaseScore();
+            lastTime = time;
+        }
+
         requestAnimationFrame(render);
         TWEEN.update();
     }
     requestAnimationFrame(render);
-
-
 }
-document.querySelector('button').addEventListener('click', main);
+// Starts game with EASY DIFFICULTY if button is pressed
+document.getElementById('easybutton').addEventListener("click", function () {
+    main('easy');
+}, false);
+
+// Starts game with EASY DIFFICULTY if button is pressed
+document.getElementById('hardbutton').addEventListener("click", function () {
+    main('hard');
+}, false);
+
+function initializeUI() {
+    // Removes main menu elements
+    var elements = document.getElementById("centered");
+    elements.style.display = "none";
+
+    // Adds score element
+    var scoreelement = document.getElementById("score");
+    scoreelement.innerHTML = 'Score: ' + 0;
+    scoreelement.style.display = "block";
+}
+
+function playMusic() {
+    var audio = new Audio('./sound/mainmenu.mp3')
+    audio.loop = true;
+    audio.volume = 0.3;
+    audio.play();
+}
 
 function deg2rad(deg) {
     return deg * Math.PI / 180;
@@ -392,7 +466,6 @@ function loadModel(url) {
 
 async function processModel(url) {
     const modelInfo = await loadModel(url);
-    console.log(modelInfo)
 
     const vertexAttributes = modelInfo.children.map((d) => ({
         position: { numComponents: 3, data: d.geometry.attributes.position.array },

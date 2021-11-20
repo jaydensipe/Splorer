@@ -11,18 +11,9 @@
   <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
   <link rel="manifest" href="images/site.webmanifest">
   <script src="./js/twgl-full.js"></script>
-  <script>
-    window.onload = function () {
-      var context = new AudioContext();
-    }
-  </script>
 </head>
 
 <body>
-  <!-- <audio loop autoplay>
-    <source src="./sound/mainmenu.mp3" type="audio/mpeg">
-  </audio> -->
-
   <div class="container">
     <canvas style="display: block; margin: auto;" id="glCanvas" width="768" height="576"></canvas>
     <!-- Main Menu -->
@@ -33,8 +24,13 @@
       <div>
         <h1>Made by Jayden Sipe</h1>
       </div>
-      <br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
-      <div><button class="button" type="button" onclick="window.main">Play game!</button></div>
+      <br />
+      <div>
+        <h1>Press 'W' to go UP and 'S' to go DOWN or Click!</h1>
+      </div>
+      <br /><br />
+      <button class="button" id="easybutton">Easy!</button>
+      <button class="button" id="hardbutton">Hard!</button>
     </div>
 
     <!-- Score UI -->
