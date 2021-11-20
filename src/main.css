@@ -74,4 +74,5 @@ canvas {
     font-size: 40px;
     color: white;
     display: none;
+    user-select: none;
 }
