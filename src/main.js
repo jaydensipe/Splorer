@@ -1,9 +1,6 @@
-// Imports
-import { OBJLoader } from "https://cdn.skypack.dev/three@/examples/jsm/loaders/OBJLoader.js";
-import { m4, v3 } from "./js/twgl-full.module.js";
-import TWEEN from "./js/tween.esm.js";
-
 // Shaders
+const OBJLoader = window.THREE.OBJLoader;
+
 const vs = ` 
     uniform mat4 u_worldViewProjection;
     uniform vec3 u_lightWorldPos;
@@ -214,9 +211,9 @@ async function main(difficulty) {
     var planetProgramInfo = twgl.createProgramInfo(gl, [vs, fs]);
 
     // Model Imports
-    const rocket = await processModel('./assets/rocket/10475_Rocket_Ship_v1_L3.obj');
-    const asteroid = await processModel('./assets/asteroid/10464_Asteroid_v1_Iterations-2.obj');
-    const planet = await processModel('./assets/planets/13913_Sun_v2_l3.obj');
+    const rocket = await processModel('https://raw.githubusercontent.com/jaydensipe/jaydensipe.github.io/master/splorer/assets/rocket/10475_Rocket_Ship_v1_L3.obj');
+    const asteroid = await processModel('https://raw.githubusercontent.com/jaydensipe/jaydensipe.github.io/master/splorer/assets/asteroid/10464_Asteroid_v1_Iterations-2.obj');
+    const planet = await processModel('https://raw.githubusercontent.com/jaydensipe/jaydensipe.github.io/master/splorer/assets/planets/13913_Sun_v2_l3.obj');
 
     // Buffer Info for each model to send to GPU
     const bufferRocket = rocket.map((d) =>
@@ -230,21 +227,21 @@ async function main(difficulty) {
     const rocketTex = twgl.createTexture(gl, {
         min: gl.NEAREST,
         mag: gl.NEAREST,
-        src: './assets/rocket/10475_Rocket_Ship_v1_Diffuse.jpg',
+        src: 'https://raw.githubusercontent.com/jaydensipe/jaydensipe.github.io/master/splorer/assets/rocket/10475_Rocket_Ship_v1_Diffuse.jpg',
         flipY: true
     });
 
     const asteroidTex = twgl.createTexture(gl, {
         min: gl.NEAREST,
         mag: gl.NEAREST,
-        src: './assets/asteroid/10464_Asteroid_v1_diffuse.jpg',
+        src: 'https://raw.githubusercontent.com/jaydensipe/jaydensipe.github.io/master/splorer/assets/asteroid/10464_Asteroid_v1_diffuse.jpg',
         flipY: true
     });
 
     const planetTex = twgl.createTexture(gl, {
         min: gl.NEAREST,
         mag: gl.NEAREST,
-        src: './assets/planets/13913_Sun_diff.jpg',
+        src: 'https://raw.githubusercontent.com/jaydensipe/jaydensipe.github.io/master/splorer/assets/planets/13913_Sun_diff.jpg',
         flipY: true
     });
 
@@ -336,16 +333,16 @@ async function main(difficulty) {
         const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
         const zNear = 0.5;
         const zFar = 5000;
-        const projection = m4.perspective(fov, aspect, zNear, zFar);
+        const projection = twgl.m4.perspective(fov, aspect, zNear, zFar);
         const eye = [600, 0, 0];
         const target = [0, 0, 0];
         const up = [0, 1, 0];
 
         // Matrices
-        const camera = m4.lookAt(eye, target, up);
-        const view = m4.inverse(camera);
-        const viewProjection = m4.multiply(projection, view);
-        const world = m4.translate(m4.rotateY(m4.identity(), deg2rad(270)), v3.create(0, -250, -250));
+        const camera = twgl.m4.lookAt(eye, target, up);
+        const view = twgl.m4.inverse(camera);
+        const viewProjection = twgl.m4.multiply(projection, view);
+        const world = twgl.m4.translate(twgl.m4.rotateY(twgl.m4.identity(), deg2rad(270)), twgl.v3.create(0, -250, -250));
 
         // ROCKET
         var uniforms = {
@@ -360,8 +357,8 @@ async function main(difficulty) {
 
         uniforms.u_viewInverse = camera;
         uniforms.u_world = world;
-        uniforms.u_worldInverse = m4.transpose(m4.inverse(world));
-        uniforms.u_worldViewProjection = m4.rotateZ(m4.translate(m4.translate(m4.multiply(viewProjection, world), playerPos), playerWiggle), deg2rad(180));
+        uniforms.u_worldInverse = twgl.m4.transpose(twgl.m4.inverse(world));
+        uniforms.u_worldViewProjection = twgl.m4.rotateZ(twgl.m4.translate(twgl.m4.translate(twgl.m4.multiply(viewProjection, world), playerPos), playerWiggle), deg2rad(180));
 
         gl.useProgram(rocketProgramInfo.program);
         bufferRocket.forEach((bufferInfo) => {
@@ -384,8 +381,8 @@ async function main(difficulty) {
         asteroidsToDraw.forEach((asteroid) => {
             uniforms.u_diffuse = asteroidTex;
             uniforms.u_world = world;
-            uniforms.u_worldInverse = m4.transpose(m4.inverse(world));
-            uniforms.u_worldViewProjection = m4.scale(m4.rotateZ(m4.translate(m4.multiply(viewProjection, world), asteroid.position), deg2rad(time * asteroid.rotationSpeed)), [0.1, 0.1, 0.1]);
+            uniforms.u_worldInverse = twgl.m4.transpose(twgl.m4.inverse(world));
+            uniforms.u_worldViewProjection = twgl.m4.scale(twgl.m4.rotateZ(twgl.m4.translate(twgl.m4.multiply(viewProjection, world), asteroid.position), deg2rad(time * asteroid.rotationSpeed)), [0.1, 0.1, 0.1]);
 
             gl.useProgram(asteroidProgramInfo.program);
             twgl.setUniforms(asteroidProgramInfo, uniforms);
@@ -406,8 +403,8 @@ async function main(difficulty) {
 
         uniforms.u_diffuse = planetTex;
         uniforms.u_world = world;
-        uniforms.u_worldInverse = m4.transpose(m4.inverse(world));
-        uniforms.u_worldViewProjection = m4.scale(m4.rotateY(m4.translate(m4.multiply(viewProjection, world), [-1000, 200, 3500]), deg2rad(time * 10)), [3, 3, 3]);
+        uniforms.u_worldInverse = twgl.m4.transpose(twgl.m4.inverse(world));
+        uniforms.u_worldViewProjection = twgl.m4.scale(twgl.m4.rotateY(twgl.m4.translate(twgl.m4.multiply(viewProjection, world), [-1000, 200, 3500]), deg2rad(time * 10)), [3, 3, 3]);
 
         gl.useProgram(planetProgramInfo.program);
         bufferplanet.forEach((bufferInfo) => {
