@@ -1,3 +1,3 @@
-# FinalProject
+# Splorer
 
 A game for UCF's Computer Graphics class.
