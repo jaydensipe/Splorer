@@ -1,7 +1,7 @@
 // Imports
-import { OBJLoader } from 'https://cdn.jsdelivr.net/gh/mrdoob/three.js/examples/jsm/loaders/OBJLoader.js';
 import { m4, v3 } from "./js/twgl-full.module.js";
 import TWEEN from "./js/tween.esm.js";
+
 
 // Shaders
 const vs = ` 
@@ -460,7 +460,7 @@ function deg2rad(deg) {
 }
 
 function loadModel(url) {
-    const loader = new OBJLoader();
+    const loader = new THREE.OBJLoader();
     return loader.loadAsync(url);
 }
 
