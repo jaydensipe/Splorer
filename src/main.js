@@ -1,4 +1,6 @@
 // Imports
+import * as THREE from 'https://cdn.skypack.dev/three@0.120.0/build/three.module.js'
+import { OBJLoader } from 'https://cdn.skypack.dev/three@0.120.0/examples/jsm/loaders/OBJLoader.js'
 import { m4, v3 } from "./js/twgl-full.module.js";
 import TWEEN from "./js/tween.esm.js";
 
@@ -460,7 +462,7 @@ function deg2rad(deg) {
 }
 
 function loadModel(url) {
-    const loader = new THREE.OBJLoader();
+    const loader = new OBJLoader();
     return loader.loadAsync(url);
 }
 
