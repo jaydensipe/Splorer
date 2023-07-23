@@ -1,0 +1,19 @@
+{
+  "name": "splorer",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build --base=./",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^4.4.6"
+  },
+  "dependencies": {
+    "@tweenjs/tween.js": "^21.0.0",
+    "three": "^0.154.0",
+    "twgl.js": "^5.4.1"
+  }
+}
