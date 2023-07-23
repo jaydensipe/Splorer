@@ -211,9 +211,9 @@ async function main(difficulty) {
     var planetProgramInfo = twgl.createProgramInfo(gl, [vs, fs]);
 
     // Model Imports
-    const rocket = await processModel('/rocket/10475_Rocket_Ship_v1_L3.obj');
-    const asteroid = await processModel('/asteroid/10464_Asteroid_v1_Iterations-2.obj');
-    const planet = await processModel('/planets/13913_Sun_v2_l3.obj');
+    const rocket = await processModel('./rocket/10475_Rocket_Ship_v1_L3.obj');
+    const asteroid = await processModel('./asteroid/10464_Asteroid_v1_Iterations-2.obj');
+    const planet = await processModel('./planets/13913_Sun_v2_l3.obj');
 
     // Buffer Info for each model to send to GPU
     const bufferRocket = rocket.map((d) =>
@@ -227,21 +227,21 @@ async function main(difficulty) {
     const rocketTex = twgl.createTexture(gl, {
         min: gl.NEAREST,
         mag: gl.NEAREST,
-        src: '/rocket/10475_Rocket_Ship_v1_Diffuse.jpg',
+        src: './rocket/10475_Rocket_Ship_v1_Diffuse.jpg',
         flipY: true
     });
 
     const asteroidTex = twgl.createTexture(gl, {
         min: gl.NEAREST,
         mag: gl.NEAREST,
-        src: '/asteroid/10464_Asteroid_v1_diffuse.jpg',
+        src: './asteroid/10464_Asteroid_v1_diffuse.jpg',
         flipY: true
     });
 
     const planetTex = twgl.createTexture(gl, {
         min: gl.NEAREST,
         mag: gl.NEAREST,
-        src: '/planets/13913_Sun_diff.jpg',
+        src: './planets/13913_Sun_diff.jpg',
         flipY: true
     });
 
