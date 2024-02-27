@@ -4,4 +4,4 @@ Splorer is a game created for a Computer Graphics course during my time at colle
 
 Released on: https://jaydensipe.github.io/splorer/
 
-![Splorer photo](https://jaydensipe.github.io/images/splorerpic1.webp)
+![Splorer photo](https://jaydensipe.com/_app/immutable/assets/splorerpic1.BJXKUQVv.avif)
